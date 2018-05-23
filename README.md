@@ -24,8 +24,11 @@ Usage of csv2geojson:
 
 ```
 
-
 ## Alternatives
 
 * [csv2geojson](https://github.com/mapbox/csv2geojson) (Javascript)
 * [ogr2og2](http://www.gdal.org/ogr2ogr.html)
+
+## Inspiration
+
+ * [Ahmad-Magdy/CSV-To-JSON-Converter](https://github.com/Ahmad-Magdy/CSV-To-JSON-Converter)
