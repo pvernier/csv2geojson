@@ -24,6 +24,22 @@ Usage of csv2geojson:
 
 ```
 
+## Examples
+
+```
+# Simplest way
+$csv2geojson -in data.csv
+The GeoJSON file data.geojson was successfully created.
+```
+The *-in* option is the only mandataory option. In this case csv2geojson will try to guess which fields contain the longitude and latitude coordinates. Also, if the *-out* option is omitted, the output GeoJSON file gets the same name as the input CSV file.
+
+```
+# Complete way
+$csv2geojson -in plane_trips_coords2.csv -delimiter ; -long field4 -lat field5 -out pois
+The GeoJSON file pois.geojson was successfully created.
+```
+If the CSV fields are not separated by commas, use the *-delimiter* option. If the fields containing the longitude and latitude don't have a explicit name, use the *-long* and *-lat* options. Explicit names are: longitude', 'long', 'lon' and 'x' for the longitude. 'latitude', 'lat' and 'y' for the latitude (case insensitive).
+
 ## Alternatives
 
 * [csv2geojson](https://github.com/mapbox/csv2geojson) (Javascript)
