@@ -2,6 +2,10 @@
 
 A CLI to convert CSV to GeoJSON
 
+## Download
+
+Get the binaries for Windows and Linux (64 bits) [here](https://github.com/pvernier/csv2geojson/releases).
+
 ## Usage
 
 ```
