@@ -38,13 +38,13 @@ The *-in* option is the only mandataory option. In this case csv2geojson will tr
 $csv2geojson -in pois_09.csv -delimiter ; -long field4 -lat field5 -out pois
 The GeoJSON file pois.geojson was successfully created.
 ```
-If the CSV fields are not separated by commas, use the *-delimiter* option. If the fields containing the longitude and latitude don't have a explicit name, use the *-long* and *-lat* options. Explicit names are: longitude', 'long', 'lon' and 'x' for the longitude. 'latitude', 'lat' and 'y' for the latitude (case insensitive).
+If the fields of the input CSV file are not separated by commas, use the *-delimiter* option. If the fields containing the longitude and latitude don't have a explicit name, use the *-long* and *-lat* options. Explicit names are: longitude', 'long', 'lon' and 'x' for the longitude. 'latitude', 'lat' and 'y' for the latitude (case insensitive).
 
 ```
 $csv2geojson -delimiter \t -in ..\coords_tab.txt
 The GeoJSON file ..\coords_tab.geojson was successfully created.
 ```
-csv2geojson can also convert tab separated text file. Options can be entered in any order. The input CSV file doesn't need to be in the current folder. It can be a relative or absolute path.
+csv2geojson can also convert tab separated text files. Options can be entered in any order. The input CSV file doesn't need to be in the current folder. It can be a relative or absolute path.
 
 ## Alternatives
 
