@@ -43,7 +43,12 @@ func main() {
 		reader.Comma = []rune(*delimiter)[0]
 	}
 
-	content, _ := reader.ReadAll()
+	content, err := reader.ReadAll()
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: Couldn't read the input CSV file: %s.\n", *csvFile)
+		os.Exit(1)
+	}
 
 	if len(content) <= 1 {
 		fmt.Fprintf(os.Stderr, "The input CSV file %s is empty. Nothing to convert.\n", *csvFile)
