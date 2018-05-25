@@ -7,6 +7,8 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -26,28 +28,24 @@ func main() {
 		fmt.Println("Error: You need to specify a CSV file. Use the '-in' option. To consult the help, use '-h'.")
 		os.Exit(1)
 	}
-	inFile, err := os.Open(*csvFile)
-
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: Couldn't find the input CSV file: %s.\n", *csvFile)
-		os.Exit(1)
-	}
-	defer inFile.Close()
-
-	reader := csv.NewReader(inFile)
 
 	*delimiter = strings.Trim(*delimiter, "'")
+	var newDelimiter rune
 	if strings.Contains(*delimiter, "\\t") {
-		reader.Comma = '\t'
+		newDelimiter = '\t'
 	} else {
-		reader.Comma = []rune(*delimiter)[0]
+		newDelimiter = []rune(*delimiter)[0]
 	}
 
-	content, err := reader.ReadAll()
+	var content [][]string
 
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: Couldn't read the input CSV file: %s.\n", *csvFile)
-		os.Exit(1)
+	// If the input CSV is a URL
+	if isValidURL(*csvFile) {
+		content = readCSVFromURL(*csvFile, newDelimiter)
+
+	} else { // If is a file
+
+		content = readCSVFromFile(*csvFile, newDelimiter)
 	}
 
 	if len(content) <= 1 {
@@ -165,7 +163,12 @@ func main() {
 	var output string
 	ext := ".geojson"
 	if *jsonFile == "" {
-		output = strings.TrimSuffix(*csvFile, filepath.Ext(*csvFile)) + ext
+		if isValidURL(*csvFile) {
+			parts := strings.Split(*csvFile, "/")
+			output = strings.TrimSuffix(parts[len(parts)-1], filepath.Ext(*csvFile)) + ext
+		} else {
+			output = strings.TrimSuffix(*csvFile, filepath.Ext(*csvFile)) + ext
+		}
 	} else if *jsonFile == strings.TrimSuffix(*jsonFile, ext) { // If no extension provided
 		output = *jsonFile + ext
 	} else {
@@ -176,4 +179,57 @@ func main() {
 		os.Exit(1)
 	}
 	fmt.Fprintf(os.Stderr, "The GeoJSON file %s was successfully created.\n", output)
+}
+
+// isValidURL checks is a string is a valid URL
+func isValidURL(toTest string) bool {
+	_, err := url.ParseRequestURI(toTest)
+	if err != nil {
+		return false
+	} else {
+		return true
+	}
+}
+
+// readCSVFromURL downloads a CSV from an URL
+func readCSVFromURL(url string, delimiter rune) [][]string {
+	resp, err := http.Get(url)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: Couldn't access the URL: %s.\n", url)
+		os.Exit(1)
+	}
+	defer resp.Body.Close()
+
+	reader := csv.NewReader(resp.Body)
+	reader.Comma = delimiter
+
+	data, err := reader.ReadAll()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: Couldn't read the input CSV file: %s.\n", url)
+		os.Exit(1)
+	}
+
+	return data
+}
+
+func readCSVFromFile(file string, delimiter rune) [][]string {
+	inFile, err := os.Open(file)
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: Couldn't find the input CSV file: %s.\n", file)
+		os.Exit(1)
+	}
+	defer inFile.Close()
+
+	reader := csv.NewReader(inFile)
+	reader.Comma = delimiter
+
+	data, err := reader.ReadAll()
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: Couldn't read the input CSV file: %s.\n", file)
+		os.Exit(1)
+	}
+
+	return data
 }
