@@ -124,37 +124,41 @@ func main() {
 "features": [
 `)
 	for i, d := range content {
-		buffer.WriteString(`{ "type": "Feature", "properties": {`)
 		coordX := d[indexX]
 		coordY := d[indexY]
-		if indexX < indexY {
-			d = append(d[:indexX], d[indexX+1:]...)
-			d = append(d[:indexY-1], d[indexY:]...)
-		} else {
-			d = append(d[:indexY], d[indexY+1:]...)
-			d = append(d[:indexX-1], d[indexX:]...)
-		}
-		for j, y := range d {
+		// Only convert the row if both coordinates are available
+		if coordX != "" && coordY != "" {
+			buffer.WriteString(`{ "type": "Feature", "properties": {`)
 
-			buffer.WriteString(`"` + header[j] + `":`)
-			_, fErr := strconv.ParseFloat(y, 32)
-			_, bErr := strconv.ParseBool(y)
-			if fErr == nil {
-				buffer.WriteString(y)
-			} else if bErr == nil {
-				buffer.WriteString(strings.ToLower(y))
+			if indexX < indexY {
+				d = append(d[:indexX], d[indexX+1:]...)
+				d = append(d[:indexY-1], d[indexY:]...)
 			} else {
-				buffer.WriteString((`"` + y + `"`))
+				d = append(d[:indexY], d[indexY+1:]...)
+				d = append(d[:indexX-1], d[indexX:]...)
 			}
-			//end of property
-			if j < len(d)-1 {
-				buffer.WriteString(",")
+			for j, y := range d {
+
+				buffer.WriteString(`"` + header[j] + `":`)
+				_, fErr := strconv.ParseFloat(y, 32)
+				_, bErr := strconv.ParseBool(y)
+				if fErr == nil {
+					buffer.WriteString(y)
+				} else if bErr == nil {
+					buffer.WriteString(strings.ToLower(y))
+				} else {
+					buffer.WriteString((`"` + y + `"`))
+				}
+				//end of property
+				if j < len(d)-1 {
+					buffer.WriteString(",")
+				}
 			}
-		}
-		//end of object of the array
-		buffer.WriteString(`}, "geometry": { "type": "Point", "coordinates": [` + coordX + `, ` + coordY + `]} }`)
-		if i < len(content)-1 {
-			buffer.WriteString(",\n")
+			//end of object of the array
+			buffer.WriteString(`}, "geometry": { "type": "Point", "coordinates": [` + coordX + `, ` + coordY + `]} }`)
+			if i < len(content)-1 {
+				buffer.WriteString(",\n")
+			}
 		}
 	}
 	buffer.WriteString(`]
