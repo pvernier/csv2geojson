@@ -41,10 +41,10 @@ The GeoJSON file pois.geojson was successfully created.
 If the fields of the input CSV file are not separated by commas, use the *-delimiter* option. If the fields containing the longitude and latitude don't have a explicit name, use the *-long* and *-lat* options. Explicit names are: longitude', 'long', 'lon' and 'x' for the longitude. 'latitude', 'lat' and 'y' for the latitude (case insensitive).
 
 ```
+# Convert from a URL
 $csv2geojson -in https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.csv
 The GeoJSON file all_month.geojson was successfully created.
 ```
-Convert from a URL
 
 ```
 $csv2geojson -delimiter \t -in ..\coords_tab.txt
