@@ -1,4 +1,5 @@
 /testdata
 *.exe
 *.geojson
+*.zip
 csv2geojson
