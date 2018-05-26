@@ -16,9 +16,9 @@ import (
 )
 
 func main() {
-	csvFile := flag.String("in", "", "Input CSV file")
-	colLong := flag.String("long", "", "Name of the column containing the longitude coordinate. If not provided I will try to guess")
-	colLat := flag.String("lat", "", "Name of the column containing the latitude coordinate. If not provided I will try to guess")
+	csvFile := flag.String("in", "", "Input CSV (file or URL)")
+	colLong := flag.String("long", "", "Name of the column containing the longitude coordinates. If not provided, will try to guess")
+	colLat := flag.String("lat", "", "Name of the column containing the latitude coordinates. If not provided, will try to guess")
 	delimiter := flag.String("delimiter", ",", "Delimiter character")
 	jsonFile := flag.String("out", "", "Output GeoJSON file (extension will be added if omitted)")
 
