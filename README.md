@@ -14,11 +14,11 @@ Usage of csv2geojson:
   -delimiter string
         Delimiter character (default ",")
   -in string
-        Input CSV file
+        Input CSV (file or URL)
   -lat string
-        Name of the column containing the latitude coordinate. If not provided I will try to guess
+        Name of the column containing the latitude coordinates. If not provided, will try to guess
   -long string
-        Name of the column containing the longitude coordinate. If not provided I will try to guess
+        Name of the column containing the longitude coordinates. If not provided, will try to guess
   -out string
         Output GeoJSON file (extension will be added if omitted)
 
