@@ -62,7 +62,7 @@ func main() {
 	if *colLong == "" {
 		found := false
 		for i, v := range header {
-			if strings.ToLower(v) == "x" || strings.ToLower(v) == "longitude" || strings.ToLower(v) == "long" || strings.ToLower(v) == "lon" {
+			if strings.ToLower(v) == "x" || strings.ToLower(v) == "longitude" || strings.ToLower(v) == "long" || strings.ToLower(v) == "lon" || strings.ToLower(v) == "lng" {
 				indexX = i
 				found = true
 			}
