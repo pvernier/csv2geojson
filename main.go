@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -24,6 +25,8 @@ func main() {
 
 	flag.Parse()
 
+	var r io.Reader
+
 	if *csvFile == "" {
 		fmt.Println("Error: You need to specify a CSV file. Use the '-in' option. To consult the help, use '-h'.")
 		os.Exit(1)
@@ -37,15 +40,35 @@ func main() {
 		newDelimiter = []rune(*delimiter)[0]
 	}
 
-	var content [][]string
-
 	// If the input CSV is a URL
 	if isValidURL(*csvFile) {
-		content = readCSVFromURL(*csvFile, newDelimiter)
+		resp, err := http.Get(*csvFile)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: Couldn't access the URL: %s.\n", *csvFile)
+			os.Exit(1)
+		}
+		defer resp.Body.Close()
+		r = resp.Body
 
 	} else { // If is a file
+		f, err := os.Open(*csvFile)
 
-		content = readCSVFromFile(*csvFile, newDelimiter)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: Couldn't find the input CSV file: %s.\n", *csvFile)
+			os.Exit(1)
+		}
+		defer f.Close()
+		r = f
+	}
+
+	reader := csv.NewReader(r)
+	reader.Comma = newDelimiter
+
+	content, err := reader.ReadAll()
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: Couldn't read the input CSV file: %s.\n", *csvFile)
+		os.Exit(1)
 	}
 
 	if len(content) <= 1 {
@@ -186,54 +209,10 @@ func main() {
 }
 
 // isValidURL checks is a string is a valid URL
-func isValidURL(toTest string) bool {
-	_, err := url.ParseRequestURI(toTest)
+func isValidURL(s string) bool {
+	_, err := url.ParseRequestURI(s)
 	if err != nil {
 		return false
-	} else {
-		return true
 	}
-}
-
-// readCSVFromURL downloads a CSV from an URL
-func readCSVFromURL(url string, delimiter rune) [][]string {
-	resp, err := http.Get(url)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: Couldn't access the URL: %s.\n", url)
-		os.Exit(1)
-	}
-	defer resp.Body.Close()
-
-	reader := csv.NewReader(resp.Body)
-	reader.Comma = delimiter
-
-	data, err := reader.ReadAll()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: Couldn't read the input CSV file: %s.\n", url)
-		os.Exit(1)
-	}
-
-	return data
-}
-
-func readCSVFromFile(file string, delimiter rune) [][]string {
-	inFile, err := os.Open(file)
-
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: Couldn't find the input CSV file: %s.\n", file)
-		os.Exit(1)
-	}
-	defer inFile.Close()
-
-	reader := csv.NewReader(inFile)
-	reader.Comma = delimiter
-
-	data, err := reader.ReadAll()
-
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: Couldn't read the input CSV file: %s.\n", file)
-		os.Exit(1)
-	}
-
-	return data
+	return true
 }
