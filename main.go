@@ -61,18 +61,23 @@ func main() {
 		r = f
 	}
 
+	convert(r, *csvFile, *colLong, *colLat, *jsonFile, newDelimiter)
+}
+
+// convert converts the data 'r' rom the input CSV file 'inputFile' to an output GeoJSON file 'outputFile'
+func convert(r io.Reader, inputFile, colLongitude, colLatitude, outputFile string, delimiter rune) {
 	reader := csv.NewReader(r)
-	reader.Comma = newDelimiter
+	reader.Comma = delimiter
 
 	content, err := reader.ReadAll()
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: Couldn't read the input CSV file: %s.\n", *csvFile)
+		fmt.Fprintf(os.Stderr, "Error: Couldn't read the input CSV file: %s.\n", inputFile)
 		os.Exit(1)
 	}
 
 	if len(content) <= 1 {
-		fmt.Fprintf(os.Stderr, "The input CSV file %s is empty. Nothing to convert.\n", *csvFile)
+		fmt.Fprintf(os.Stderr, "The input CSV file %s is empty. Nothing to convert.\n", inputFile)
 		os.Exit(1)
 	}
 
@@ -82,7 +87,7 @@ func main() {
 	}
 
 	var indexX, indexY int
-	if *colLong == "" {
+	if colLongitude == "" {
 		found := false
 		for i, v := range header {
 			if strings.ToLower(v) == "x" || strings.ToLower(v) == "longitude" || strings.ToLower(v) == "long" || strings.ToLower(v) == "lon" || strings.ToLower(v) == "lng" {
@@ -96,17 +101,17 @@ func main() {
 		}
 	} else {
 		for i, v := range header {
-			if strings.ToLower(v) == strings.ToLower(*colLong) {
+			if strings.ToLower(v) == strings.ToLower(colLongitude) {
 				indexX = i
 			}
 		}
 		if indexX == 0 {
-			fmt.Fprintf(os.Stderr, "Couldn't find column: %s.\n", *colLong)
+			fmt.Fprintf(os.Stderr, "Couldn't find column: %s.\n", colLongitude)
 			os.Exit(1)
 		}
 	}
 
-	if *colLat == "" {
+	if colLatitude == "" {
 		found := false
 		for i, v := range header {
 			if strings.ToLower(v) == "y" || strings.ToLower(v) == "latitude" || strings.ToLower(v) == "lat" {
@@ -120,12 +125,12 @@ func main() {
 		}
 	} else {
 		for i, v := range header {
-			if strings.ToLower(v) == strings.ToLower(*colLat) {
+			if strings.ToLower(v) == strings.ToLower(colLatitude) {
 				indexY = i
 			}
 		}
 		if indexY == 0 {
-			fmt.Fprintf(os.Stderr, "Couldn't find column: %s.\n", *colLat)
+			fmt.Fprintf(os.Stderr, "Couldn't find column: %s.\n", colLatitude)
 			os.Exit(1)
 		}
 	}
@@ -189,17 +194,17 @@ func main() {
 	rawMessage := json.RawMessage(buffer.String())
 	var output string
 	ext := ".geojson"
-	if *jsonFile == "" {
-		if isValidURL(*csvFile) {
-			parts := strings.Split(*csvFile, "/")
-			output = strings.TrimSuffix(parts[len(parts)-1], filepath.Ext(*csvFile)) + ext
+	if outputFile == "" {
+		if isValidURL(inputFile) {
+			parts := strings.Split(inputFile, "/")
+			output = strings.TrimSuffix(parts[len(parts)-1], filepath.Ext(inputFile)) + ext
 		} else {
-			output = strings.TrimSuffix(*csvFile, filepath.Ext(*csvFile)) + ext
+			output = strings.TrimSuffix(inputFile, filepath.Ext(inputFile)) + ext
 		}
-	} else if *jsonFile == strings.TrimSuffix(*jsonFile, ext) { // If no extension provided
-		output = *jsonFile + ext
+	} else if outputFile == strings.TrimSuffix(outputFile, ext) { // If no extension provided
+		output = outputFile + ext
 	} else {
-		output = *jsonFile
+		output = outputFile
 	}
 	if err := ioutil.WriteFile(output, rawMessage, os.FileMode(0644)); err != nil {
 		fmt.Fprintf(os.Stderr, "Couldn't create the GeoJSON file: %s.\n", output)
