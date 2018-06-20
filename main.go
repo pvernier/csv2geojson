@@ -22,10 +22,11 @@ func main() {
 	colLat := flag.String("lat", "", "Name of the column containing the latitude coordinates. If not provided, will try to guess")
 	delimiter := flag.String("delimiter", ",", "Delimiter character")
 	jsonFile := flag.String("out", "", "Output GeoJSON file (extension will be added if omitted)")
+	keep := flag.String("keep", "n", "(y/n) If set to 'y' and the input CSV is an URL, keep the input CSV file on disk")
 
 	flag.Parse()
 
-	var r io.Reader
+	var r io.ReadCloser
 
 	if *csvFile == "" {
 		fmt.Println("Error: You need to specify a CSV file. Use the '-in' option. To consult the help, use '-h'.")
@@ -48,20 +49,40 @@ func main() {
 			os.Exit(1)
 		}
 		defer resp.Body.Close()
-		r = resp.Body
+		if strings.ToLower(*keep) == "y" || strings.ToLower(*keep) == "yes" {
+			parts := strings.Split(*csvFile, "/")
+			newFile, err := os.Create(parts[len(parts)-1])
+			_, err = io.Copy(newFile, resp.Body)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error: Couldn't save the CSV file: %s to disk.\n", *csvFile)
+			}
+			*csvFile = parts[len(parts)-1]
+			r = readFile(*csvFile)
+			defer r.Close()
+		} else {
+			r = resp.Body
+		}
 
 	} else { // If is a file
-		f, err := os.Open(*csvFile)
-
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: Couldn't find the input CSV file: %s.\n", *csvFile)
-			os.Exit(1)
+		if strings.ToLower(*keep) == "y" || strings.ToLower(*keep) == "yes" {
+			fmt.Println("Info: The option '-keep' is only considered when the input file is an URL.")
 		}
-		defer f.Close()
-		r = f
+		r = readFile(*csvFile)
+		defer r.Close()
 	}
 
 	convert(r, *csvFile, *colLong, *colLat, *jsonFile, newDelimiter)
+}
+
+// readFile opens a file and returns a *File object
+func readFile(file string) *os.File {
+	f, err := os.Open(file)
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: Couldn't find the input CSV file: %s.\n", file)
+		os.Exit(1)
+	}
+	return f
 }
 
 // convert converts the data 'r' rom the input CSV file 'inputFile' to an output GeoJSON file 'outputFile'
@@ -73,6 +94,7 @@ func convert(r io.Reader, inputFile, colLongitude, colLatitude, outputFile strin
 
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: Couldn't read the input CSV file: %s.\n", inputFile)
+		// panic(err)
 		os.Exit(1)
 	}
 
