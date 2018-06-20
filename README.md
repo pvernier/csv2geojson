@@ -46,7 +46,7 @@ If the fields of the input CSV file are not separated by commas, use the *-delim
 
 ```
 # Convert from a URL and keep the CSV file
-$csv2geojson -in https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.csv -keep Y
+$csv2geojson -in https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.csv -keep y
 The GeoJSON file all_month.geojson was successfully created.
 ```
 
