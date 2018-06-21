@@ -42,7 +42,7 @@ $csv2geojson -in pois_09.csv -delimiter ; -long field4 -lat field5 -out pois
 The GeoJSON file pois.geojson was successfully created.
 ```
 
-If the fields of the input CSV file are not separated by commas, use the *-delimiter* option. If the fields containing the longitude and latitude don't have a explicit name, use the *-long* and *-lat* options. Explicit names are: longitude', 'long', 'lon', 'lng' and 'x' for the longitude. 'latitude', 'lat' and 'y' for the latitude (case insensitive).
+If the fields of the input CSV file are not separated by commas, use the *-delimiter* option. If the fields containing the longitude and latitude don't have a explicit name, use the *-long* and *-lat* options. Explicit names are: 'longitude', 'long', 'lon', 'lng' and 'x' for the longitude. 'latitude', 'lat' and 'y' for the latitude (case insensitive).
 
 ```
 # Convert from a URL and keep the CSV file
