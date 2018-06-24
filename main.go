@@ -90,22 +90,11 @@ func convert(r io.Reader, inputFile, colLongitude, colLatitude, outputFile strin
 	reader := csv.NewReader(r)
 	reader.Comma = delimiter
 
-	content, err := reader.ReadAll()
+	header, err := reader.Read()
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: Couldn't read the input CSV file: %s.\n", inputFile)
-		// panic(err)
+		fmt.Fprintf(os.Stderr, "Error: Couldn't read the input CSV file: %s. Cause: %s\n", inputFile, err)
 		os.Exit(1)
-	}
-
-	if len(content) <= 1 {
-		fmt.Fprintf(os.Stderr, "The input CSV file %s is empty. Nothing to convert.\n", inputFile)
-		os.Exit(1)
-	}
-
-	header := make([]string, 0)
-	for _, headE := range content[0] {
-		header = append(header, headE)
 	}
 
 	var indexX, indexY int
@@ -164,15 +153,23 @@ func convert(r io.Reader, inputFile, colLongitude, colLatitude, outputFile strin
 		header = append(header[:indexY], header[indexY+1:]...)
 		header = append(header[:indexX-1], header[indexX:]...)
 	}
-	//Remove the header row
-	content = content[1:]
 
 	var buffer bytes.Buffer
+
 	buffer.WriteString(`{
-"type": "FeatureCollection",
-"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },                                                                  
-"features": [
-`)
+		"type": "FeatureCollection",
+		"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },                                                                  
+		"features": [
+	`)
+
+	// Read the rest of the file
+	content, err := reader.ReadAll()
+
+	if len(content) == 0 {
+		fmt.Fprintf(os.Stderr, "The input CSV file %s is empty. Nothing to convert.\n", inputFile)
+		os.Exit(1)
+	}
+
 	for i, d := range content {
 		coordX := d[indexX]
 		coordY := d[indexY]
