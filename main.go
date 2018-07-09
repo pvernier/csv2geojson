@@ -128,12 +128,14 @@ func convert(r io.Reader, inputFile, colLongitude, colLatitude, outputFile strin
 			os.Exit(1)
 		}
 	} else {
+		found := false
 		for i, v := range header {
 			if strings.ToLower(v) == strings.ToLower(colLongitude) {
 				indexX = i
+				found = true
 			}
 		}
-		if indexX == 0 {
+		if !found {
 			fmt.Fprintf(os.Stderr, "Couldn't find column: %s.\n", colLongitude)
 			os.Exit(1)
 		}
@@ -152,12 +154,14 @@ func convert(r io.Reader, inputFile, colLongitude, colLatitude, outputFile strin
 			os.Exit(1)
 		}
 	} else {
+		found := false
 		for i, v := range header {
 			if strings.ToLower(v) == strings.ToLower(colLatitude) {
 				indexY = i
+				found = true
 			}
 		}
-		if indexY == 0 {
+		if !found {
 			fmt.Fprintf(os.Stderr, "Couldn't find column: %s.\n", colLatitude)
 			os.Exit(1)
 		}
