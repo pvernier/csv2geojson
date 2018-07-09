@@ -10,19 +10,13 @@ Get the binaries (64 bits) for Windows and Linux [here](https://github.com/pvern
 
 ```
 $csv2geojson -h
-Usage of csv2geojson:
-  -delimiter string
-        Delimiter character (default ",")
-  -in string
-        Input CSV (file or URL)
-  -keep string
-        (y/n) If set to 'y' and the input CSV is an URL, keep the input CSV file on disk (default "n")
-  -lat string
-        Name of the column containing the latitude coordinates. If not provided, will try to guess
-  -long string
-        Name of the column containing the longitude coordinates. If not provided, will try to guess
-  -out string
-        Output GeoJSON file (extension will be added if omitted)
+Usage: csv2geojson [-options] <input> [output]
+
+Options:
+  -delimiter: Delimiter character (default ",")
+  -long:      Name of the column containing the longitude coordinates. If not provided, will try to guess
+  -lat:       Name of the column containing the latitude coordinates. If not provided, will try to guess
+  -keep:      (y/n) If set to 'y' and the input CSV is an URL, keep the input CSV file on disk (default "n")
 
 ```
 
@@ -30,15 +24,15 @@ Usage of csv2geojson:
 
 ```
 # Simplest way
-$csv2geojson -in data.csv
+$csv2geojson data.csv
 The GeoJSON file data.geojson was successfully created.
 ```
 
-The *-in* option is the only mandatory option. In this case csv2geojson will try to guess which fields contain the longitude and latitude coordinates. Also, if the *-out* option is omitted, the output GeoJSON file gets the same name as the input CSV file.
+In this case csv2geojson will try to guess which fields contain the longitude and latitude coordinates. Also, if **[output]** is omitted, the output GeoJSON file gets the same name as the input CSV file.
 
 ```
 # Complete way
-$csv2geojson -in pois_09.csv -delimiter ; -long field4 -lat field5 -out pois
+$csv2geojson --delimiter ; -long field4 -lat field3 data_fr.csv pois
 The GeoJSON file pois.geojson was successfully created.
 ```
 
@@ -46,12 +40,12 @@ If the fields of the input CSV file are not separated by commas, use the *-delim
 
 ```
 # Convert from a URL and keep the CSV file
-$csv2geojson -in https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.csv -keep y
+$csv2geojson -keep y https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.csv
 The GeoJSON file all_month.geojson was successfully created.
 ```
 
 ```
-$csv2geojson -delimiter \t -in ..\coords_tab.txt
+$csv2geojson -delimiter \t ..\coords_tab.txt
 The GeoJSON file ..\coords_tab.geojson was successfully created.
 ```
 
