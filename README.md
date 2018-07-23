@@ -16,7 +16,7 @@ Options:
   -delimiter: Delimiter character (default ",")
   -long:      Name of the column containing the longitude coordinates. If not provided, will try to guess
   -lat:       Name of the column containing the latitude coordinates. If not provided, will try to guess
-  -keep:      (y/n) If set to 'y' and the input CSV is an URL, keep the input CSV file on disk (default "n")
+  -keep:      (y/n) If set to "y" and the input CSV is an URL, keep the input CSV file on disk (default "n")
 
 ```
 
@@ -60,4 +60,3 @@ csv2geojson can also convert tab separated text files. Options can be entered in
 
  * [Ahmad-Magdy/CSV-To-JSON-Converter](https://github.com/Ahmad-Magdy/CSV-To-JSON-Converter)
  * [Golang - Read CSV/JSON from URL](https://gist.github.com/stupidbodo/71f2b164744a18a18e74)
- * [How to check if a string is a URL](https://golangcode.com/how-to-check-if-a-string-is-a-url/)
