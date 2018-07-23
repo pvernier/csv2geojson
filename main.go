@@ -9,19 +9,20 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 )
 
-func main() {
+var isURL = false
 
+func main() {
 	colLong := flag.String("long", "", "Name of the column containing the longitude coordinates. If not provided, will try to guess")
 	colLat := flag.String("lat", "", "Name of the column containing the latitude coordinates. If not provided, will try to guess")
 	delimiter := flag.String("delimiter", ",", "Delimiter character")
-	keep := flag.String("keep", "n", "(y/n) If set to 'y' and the input CSV is an URL, keep the input CSV file on disk")
+	keep := flag.String("keep", "n", "(y/n) If set to \"y\" and the input CSV is an URL, keep the input CSV file on disk")
 
 	flag.Usage = func() {
 		help := "\nOptions:\n" + "  -" + flag.CommandLine.Lookup("delimiter").Name + ": " + flag.CommandLine.Lookup("delimiter").Usage + " (default \"" + flag.CommandLine.Lookup("delimiter").DefValue + "\")" + "\n"
@@ -36,10 +37,10 @@ func main() {
 	var csvFile, jsonFile string
 
 	if len(flag.Args()) == 0 {
-		fmt.Println("Error: You need to specify a CSV file. To consult the help, use '-h'.")
+		fmt.Fprintf(os.Stderr, "Error: You need to specify a CSV file. To consult the help, use '-h'.\n")
 		os.Exit(1)
 	} else if len(flag.Args()) > 2 {
-		fmt.Println("Error: You can only specify 2 arguments. To consult the help, use '-h'.")
+		fmt.Fprintf(os.Stderr, "Error: You can specify a maximum of 2 arguments. To consult the help, use '-h'.\n")
 		os.Exit(1)
 	} else {
 		csvFile = flag.Args()[0]
@@ -56,39 +57,104 @@ func main() {
 		newDelimiter = []rune(*delimiter)[0]
 	}
 
-	var r io.ReadCloser
+	filesList := []string{}
 
-	// If the input CSV is a URL
-	if isValidURL(csvFile) {
-		resp, err := http.Get(csvFile)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: Couldn't access the URL: %s.\n", csvFile)
-			os.Exit(1)
-		}
-		defer resp.Body.Close()
-		if strings.ToLower(*keep) == "y" || strings.ToLower(*keep) == "yes" {
-			parts := strings.Split(csvFile, "/")
-			newFile, err := os.Create(parts[len(parts)-1])
-			_, err = io.Copy(newFile, resp.Body)
+	fi, err := os.Stat(csvFile)
+	if err != nil {
+		if strings.HasPrefix(csvFile, "https://") || strings.HasPrefix(csvFile, "http://") { // case: URL
+			isURL = true
+			var r io.ReadCloser
+			resp, err := http.Get(csvFile)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error: Couldn't save the CSV file: %s to disk.\n", csvFile)
+				fmt.Fprintf(os.Stderr, "Error: Couldn't access the URL: %s.\n", csvFile)
+				os.Exit(1)
 			}
-			csvFile = parts[len(parts)-1]
-			r = readFile(csvFile)
-			defer r.Close()
-		} else {
-			r = resp.Body
+			defer resp.Body.Close()
+			if strings.ToLower(*keep) == "y" || strings.ToLower(*keep) == "yes" {
+				parts := strings.Split(csvFile, "/")
+				newFile, err := os.Create(parts[len(parts)-1])
+				_, err = io.Copy(newFile, resp.Body)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Error: Couldn't save the CSV file: %s to disk.\n", csvFile)
+				}
+				csvFile = parts[len(parts)-1]
+				r = readFile(csvFile)
+				defer r.Close()
+			} else {
+				r = resp.Body
+			}
+			convert(r, csvFile, *colLong, *colLat, jsonFile, newDelimiter)
+		} else { // case: Wild card
+			if !strings.HasSuffix(csvFile, ".csv") {
+				csvFile = csvFile + ".csv"
+				fmt.Println(csvFile)
+			}
+			files, err := filepath.Glob(csvFile)
+			if err != nil {
+				panic(err)
+			}
+			for _, file := range files {
+				filesList = append(filesList, file)
+			}
 		}
 
-	} else { // If is a file
+	} else {
+		if fi.IsDir() { // case: Directory
+			files, err := ioutil.ReadDir(csvFile)
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			for _, f := range files {
+				if filepath.Ext(f.Name()) == ".csv" {
+					filesList = append(filesList, filepath.Join(csvFile, f.Name()))
+				}
+			}
+		} else { // case: File
+			filesList = append(filesList, csvFile)
+		}
+	}
+
+	if !isURL {
 		if strings.ToLower(*keep) == "y" || strings.ToLower(*keep) == "yes" {
 			fmt.Println("Info: The option '-keep' is only considered when the input file is an URL.")
 		}
-		r = readFile(csvFile)
-		defer r.Close()
-	}
+		numGoRountines := 5
+		var rounds, rest int
+		if len(filesList) <= numGoRountines {
+			rounds = 1
+			numGoRountines = len(filesList)
+		} else {
+			rounds = len(filesList) / numGoRountines
+			rest = len(filesList) % numGoRountines
+		}
 
-	convert(r, csvFile, *colLong, *colLat, jsonFile, newDelimiter)
+		var wg sync.WaitGroup
+		for i := 0; i < rounds; i++ {
+			for _, f := range filesList[i*numGoRountines : (i+1)*numGoRountines] {
+				wg.Add(1)
+				go func(f string) {
+					r := readFile(f)
+					defer r.Close()
+					convert(r, f, *colLong, *colLat, jsonFile, newDelimiter)
+					wg.Done()
+				}(f)
+			}
+			wg.Wait()
+		}
+		if rest > 0 {
+			for _, f := range filesList[rounds*numGoRountines:] {
+				wg.Add(1)
+				go func(f string) {
+					r := readFile(f)
+					defer r.Close()
+					convert(r, f, *colLong, *colLat, jsonFile, newDelimiter)
+					wg.Done()
+				}(f)
+			}
+			wg.Wait()
+		}
+	}
 }
 
 // readFile opens a file and returns a *File object
@@ -111,7 +177,7 @@ func convert(r io.Reader, inputFile, colLongitude, colLatitude, outputFile strin
 
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: Couldn't read the input CSV file: %s. Cause: %s\n", inputFile, err)
-		os.Exit(1)
+		return
 	}
 
 	var indexX, indexY int
@@ -124,8 +190,8 @@ func convert(r io.Reader, inputFile, colLongitude, colLatitude, outputFile strin
 			}
 		}
 		if !found {
-			fmt.Println("Couldn't determine the column containing the longitude. Please specify it using the '-long' option.")
-			os.Exit(1)
+			fmt.Fprintf(os.Stderr, "%s: Couldn't determine the column containing the longitude. Specify it using the '-long' option.\n", inputFile)
+			return
 		}
 	} else {
 		found := false
@@ -136,8 +202,8 @@ func convert(r io.Reader, inputFile, colLongitude, colLatitude, outputFile strin
 			}
 		}
 		if !found {
-			fmt.Fprintf(os.Stderr, "Couldn't find column: %s.\n", colLongitude)
-			os.Exit(1)
+			fmt.Fprintf(os.Stderr, "%s: Couldn't find column: %s.\n", inputFile, colLongitude)
+			return
 		}
 	}
 
@@ -150,8 +216,8 @@ func convert(r io.Reader, inputFile, colLongitude, colLatitude, outputFile strin
 			}
 		}
 		if !found {
-			fmt.Println("Couldn't determine the column containing the latitude. Please specify it using the '-lat' option.")
-			os.Exit(1)
+			fmt.Fprintf(os.Stderr, "%s: Couldn't determine the column containing the latitude. Specify it using the '-lat' option.\n", inputFile)
+			return
 		}
 	} else {
 		found := false
@@ -162,8 +228,8 @@ func convert(r io.Reader, inputFile, colLongitude, colLatitude, outputFile strin
 			}
 		}
 		if !found {
-			fmt.Fprintf(os.Stderr, "Couldn't find column: %s.\n", colLatitude)
-			os.Exit(1)
+			fmt.Fprintf(os.Stderr, "%s: Couldn't find column: %s.\n", inputFile, colLatitude)
+			return
 		}
 	}
 
@@ -188,7 +254,7 @@ func convert(r io.Reader, inputFile, colLongitude, colLatitude, outputFile strin
 
 	if len(content) == 0 {
 		fmt.Fprintf(os.Stderr, "The input CSV file %s is empty. Nothing to convert.\n", inputFile)
-		os.Exit(1)
+		return
 	}
 
 	for i, d := range content {
@@ -235,7 +301,7 @@ func convert(r io.Reader, inputFile, colLongitude, colLatitude, outputFile strin
 	var output string
 	ext := ".geojson"
 	if outputFile == "" {
-		if isValidURL(inputFile) {
+		if isURL {
 			parts := strings.Split(inputFile, "/")
 			output = strings.TrimSuffix(parts[len(parts)-1], filepath.Ext(inputFile)) + ext
 		} else {
@@ -248,16 +314,7 @@ func convert(r io.Reader, inputFile, colLongitude, colLatitude, outputFile strin
 	}
 	if err := ioutil.WriteFile(output, rawMessage, os.FileMode(0644)); err != nil {
 		fmt.Fprintf(os.Stderr, "Couldn't create the GeoJSON file: %s.\n", output)
-		os.Exit(1)
+		return
 	}
 	fmt.Fprintf(os.Stderr, "The GeoJSON file %s was successfully created.\n", output)
-}
-
-// isValidURL checks is a string is a valid URL
-func isValidURL(s string) bool {
-	_, err := url.ParseRequestURI(s)
-	if err != nil {
-		return false
-	}
-	return true
 }
