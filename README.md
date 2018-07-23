@@ -32,7 +32,7 @@ In this case csv2geojson will try to guess which fields contain the longitude an
 
 ```
 # Complete way
-$csv2geojson --delimiter ; -long field4 -lat field3 data_fr.csv pois
+$csv2geojson -delimiter ; -long field4 -lat field3 data_fr.csv pois
 The GeoJSON file pois.geojson was successfully created.
 ```
 
