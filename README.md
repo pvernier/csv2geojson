@@ -16,7 +16,7 @@ Options:
   -delimiter: Delimiter character (default ",")
   -long:      Name of the column containing the longitude coordinates. If not provided, will try to guess
   -lat:       Name of the column containing the latitude coordinates. If not provided, will try to guess
-  -keep:      (y/n) If set to 'y' and the input CSV is an URL, keep the input CSV file on disk (default "n")
+  -keep:      (y/n) If set to "y" and the input CSV is an URL, keep the input CSV file on disk (default "n")
 
 ```
 
