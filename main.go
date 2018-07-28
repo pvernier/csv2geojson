@@ -23,12 +23,14 @@ func main() {
 	colLat := flag.String("lat", "", "Name of the column containing the latitude coordinates. If not provided, will try to guess")
 	delimiter := flag.String("delimiter", ",", "Delimiter character")
 	keep := flag.String("keep", "n", "(y/n) If set to \"y\" and the input CSV is an URL, keep the input CSV file on disk")
+	threads := flag.Int("threads", 1, "Number of threads (used when converting more than one file)")
 
 	flag.Usage = func() {
 		help := "\nOptions:\n" + "  -" + flag.CommandLine.Lookup("delimiter").Name + ": " + flag.CommandLine.Lookup("delimiter").Usage + " (default \"" + flag.CommandLine.Lookup("delimiter").DefValue + "\")" + "\n"
 		help += "  -" + flag.CommandLine.Lookup("long").Name + ":      " + flag.CommandLine.Lookup("long").Usage + "\n"
 		help += "  -" + flag.CommandLine.Lookup("lat").Name + ":       " + flag.CommandLine.Lookup("lat").Usage + "\n"
 		help += "  -" + flag.CommandLine.Lookup("keep").Name + ":      " + flag.CommandLine.Lookup("keep").Usage + " (default \"" + flag.CommandLine.Lookup("keep").DefValue + "\")" + "\n"
+		help += "  -" + flag.CommandLine.Lookup("threads").Name + ":   " + flag.CommandLine.Lookup("threads").Usage + " (default \"" + flag.CommandLine.Lookup("threads").DefValue + "\")" + "\n"
 		fmt.Fprintf(os.Stderr, "Usage: %s [-options] <input> [output]\n%s", os.Args[0], help)
 	}
 
@@ -56,6 +58,8 @@ func main() {
 	} else {
 		newDelimiter = []rune(*delimiter)[0]
 	}
+
+	numGoRoutines := *threads
 
 	filesList := []string{}
 
@@ -87,7 +91,6 @@ func main() {
 		} else { // case: Wild card
 			if !strings.HasSuffix(csvFile, ".csv") {
 				csvFile = csvFile + ".csv"
-				fmt.Println(csvFile)
 			}
 			files, err := filepath.Glob(csvFile)
 			if err != nil {
@@ -125,9 +128,13 @@ func main() {
 				fmt.Println("Info: The output file name is not considered when there are multiple files to convert.")
 				jsonFile = ""
 			}
+		} else if len(filesList) == 1 {
+			numGoRoutines = 1
+		} else {
+			fmt.Println("There is no file to convert")
+			os.Exit(1)
 		}
 
-		numGoRoutines := 5
 		var rounds, rest int
 		if len(filesList) <= numGoRoutines {
 			rounds = 1
