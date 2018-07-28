@@ -119,19 +119,19 @@ func main() {
 		if strings.ToLower(*keep) == "y" || strings.ToLower(*keep) == "yes" {
 			fmt.Println("Info: The option '-keep' is only considered when the input file is an URL.")
 		}
-		numGoRountines := 5
+		numGoRoutines := 5
 		var rounds, rest int
-		if len(filesList) <= numGoRountines {
+		if len(filesList) <= numGoRoutines {
 			rounds = 1
-			numGoRountines = len(filesList)
+			numGoRoutines = len(filesList)
 		} else {
-			rounds = len(filesList) / numGoRountines
-			rest = len(filesList) % numGoRountines
+			rounds = len(filesList) / numGoRoutines
+			rest = len(filesList) % numGoRoutines
 		}
 
 		var wg sync.WaitGroup
 		for i := 0; i < rounds; i++ {
-			for _, f := range filesList[i*numGoRountines : (i+1)*numGoRountines] {
+			for _, f := range filesList[i*numGoRoutines : (i+1)*numGoRoutines] {
 				wg.Add(1)
 				go func(f string) {
 					r := readFile(f)
@@ -143,7 +143,7 @@ func main() {
 			wg.Wait()
 		}
 		if rest > 0 {
-			for _, f := range filesList[rounds*numGoRountines:] {
+			for _, f := range filesList[rounds*numGoRoutines:] {
 				wg.Add(1)
 				go func(f string) {
 					r := readFile(f)
