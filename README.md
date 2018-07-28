@@ -1,6 +1,6 @@
 # csv2geojson
 
-A CLI to convert CSV to GeoJSON from a file or URL.
+A CLI to convert CSV to GeoJSON from a file, folder or URL.
 
 ## Download
 
@@ -17,6 +17,7 @@ Options:
   -long:      Name of the column containing the longitude coordinates. If not provided, will try to guess
   -lat:       Name of the column containing the latitude coordinates. If not provided, will try to guess
   -keep:      (y/n) If set to "y" and the input CSV is an URL, keep the input CSV file on disk (default "n")
+  -threads:   Number of threads (used when converting more than one file) (default "1")
 
 ```
 
@@ -50,6 +51,28 @@ The GeoJSON file ..\coords_tab.geojson was successfully created.
 ```
 
 csv2geojson can also convert tab separated text files. Options can be entered in any order. The input CSV file doesn't need to be in the current folder. It can be a relative or absolute path.
+
+```
+# The folder 'data' contains 5 CSV files: zone_A1, zone_A2, zone_A3, zone_B1 and zone_B2.
+
+# Convert all the CSV files inside a folder:
+$csv2geojson -threads 3 data
+The GeoJSON file data\zone_A3.geojson was successfully created.
+The GeoJSON file data\zone_A2.geojson was successfully created.
+The GeoJSON file data\zone_A1.geojson was successfully created.
+The GeoJSON file data\zone_B1.geojson was successfully created.
+The GeoJSON file data\zone_B2.geojson was successfully created.
+```
+When converting multiple files, using the option *-threads* can make it faster. In this case, the order in which the files are converted is not
+guaranteed to always be the same.
+
+```
+# Use a filter to only convert a subset of files
+$csv2geojson data\*B*
+The GeoJSON file data\zone_B1.geojson was successfully created.
+The GeoJSON file data\zone_B2.geojson was successfully created.
+```
+
 
 ## Alternatives
 
