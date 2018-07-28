@@ -119,6 +119,14 @@ func main() {
 		if strings.ToLower(*keep) == "y" || strings.ToLower(*keep) == "yes" {
 			fmt.Println("Info: The option '-keep' is only considered when the input file is an URL.")
 		}
+
+		if len(filesList) > 1 {
+			if jsonFile != "" {
+				fmt.Println("Info: The output file name is not considered when there are multiple files to convert.")
+				jsonFile = ""
+			}
+		}
+
 		numGoRoutines := 5
 		var rounds, rest int
 		if len(filesList) <= numGoRoutines {
