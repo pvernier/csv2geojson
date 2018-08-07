@@ -61,6 +61,10 @@ func main() {
 
 	numGoRoutines := *threads
 
+	if numGoRoutines < 1 {
+		numGoRoutines = 1
+	}
+
 	filesList := []string{}
 
 	fi, err := os.Stat(csvFile)
