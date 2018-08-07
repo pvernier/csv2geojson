@@ -23,6 +23,8 @@ Options:
 
 ## Examples
 
+### Convert a single file
+
 ```
 # Simplest way
 $csv2geojson data.csv
@@ -40,22 +42,26 @@ The GeoJSON file pois.geojson was successfully created.
 If the fields of the input CSV file are not separated by commas, use the *-delimiter* option. If the fields containing the longitude and latitude don't have a explicit name, use the *-long* and *-lat* options. Explicit names are: 'longitude', 'long', 'lon', 'lng' and 'x' for the longitude. 'latitude', 'lat' and 'y' for the latitude (case insensitive).
 
 ```
-# Convert from a URL and keep the CSV file
-$csv2geojson -keep y https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.csv
-The GeoJSON file all_month.geojson was successfully created.
-```
-
-```
 $csv2geojson -delimiter \t ..\coords_tab.txt
 The GeoJSON file ..\coords_tab.geojson was successfully created.
 ```
 
 csv2geojson can also convert tab separated text files. Options can be entered in any order. The input CSV file doesn't need to be in the current folder. It can be a relative or absolute path.
 
+### Convert from a URL
+
+```
+$csv2geojson -keep y https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.csv
+The GeoJSON file all_month.geojson was successfully created.
+```
+
+*-keep y* saves the downloaded CSV. By default, it is not saved.
+
+### Convert all the CSV files inside a folder
+
 ```
 # The folder 'data' contains 5 CSV files: zone_A1, zone_A2, zone_A3, zone_B1 and zone_B2.
 
-# Convert all the CSV files inside a folder:
 $csv2geojson -threads 3 data
 The GeoJSON file data\zone_A3.geojson was successfully created.
 The GeoJSON file data\zone_A2.geojson was successfully created.
@@ -66,8 +72,9 @@ The GeoJSON file data\zone_B2.geojson was successfully created.
 When converting multiple files, using the option *-threads* can make it faster. In this case, the order in which the files are converted is not
 guaranteed to always be the same.
 
+### Convert a subset of CSV files inside a folder
+
 ```
-# Use a filter to only convert a subset of files
 $csv2geojson data\*B*
 The GeoJSON file data\zone_B1.geojson was successfully created.
 The GeoJSON file data\zone_B2.geojson was successfully created.
