@@ -18,6 +18,7 @@ Options:
   -lat:       Name of the column containing the latitude coordinates. If not provided, will try to guess
   -keep:      (y/n) If set to "y" and the input CSV is an URL, keep the input CSV file on disk (default "n")
   -threads:   Number of threads (used when converting more than one file) (default "1")
+  -suffix:    Suffix to add to the name of output GeoJSON file(s)
 
 ```
 
