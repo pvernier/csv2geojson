@@ -24,6 +24,7 @@ func main() {
 	delimiter := flag.String("delimiter", ",", "Delimiter character")
 	keep := flag.String("keep", "n", "(y/n) If set to \"y\" and the input CSV is an URL, keep the input CSV file on disk")
 	threads := flag.Int("threads", 1, "Number of threads (used when converting more than one file)")
+	suffix := flag.String("suffix", "", "Suffix to add to the name of output GeoJSON file(s)")
 
 	flag.Usage = func() {
 		help := "\nOptions:\n" + "  -" + flag.CommandLine.Lookup("delimiter").Name + ": " + flag.CommandLine.Lookup("delimiter").Usage + " (default \"" + flag.CommandLine.Lookup("delimiter").DefValue + "\")" + "\n"
@@ -31,6 +32,7 @@ func main() {
 		help += "  -" + flag.CommandLine.Lookup("lat").Name + ":       " + flag.CommandLine.Lookup("lat").Usage + "\n"
 		help += "  -" + flag.CommandLine.Lookup("keep").Name + ":      " + flag.CommandLine.Lookup("keep").Usage + " (default \"" + flag.CommandLine.Lookup("keep").DefValue + "\")" + "\n"
 		help += "  -" + flag.CommandLine.Lookup("threads").Name + ":   " + flag.CommandLine.Lookup("threads").Usage + " (default \"" + flag.CommandLine.Lookup("threads").DefValue + "\")" + "\n"
+		help += "  -" + flag.CommandLine.Lookup("suffix").Name + ":    " + flag.CommandLine.Lookup("suffix").Usage + "\n"
 		fmt.Fprintf(os.Stderr, "Usage: %s [-options] <input> [output]\n%s", os.Args[0], help)
 	}
 
@@ -91,7 +93,7 @@ func main() {
 			} else {
 				r = resp.Body
 			}
-			convert(r, csvFile, *colLong, *colLat, jsonFile, newDelimiter)
+			convert(r, csvFile, *colLong, *colLat, jsonFile, newDelimiter, *suffix)
 		} else { // case: Wild card
 			if !strings.HasSuffix(csvFile, ".csv") {
 				csvFile = csvFile + ".csv"
@@ -155,7 +157,7 @@ func main() {
 				go func(f string) {
 					r := readFile(f)
 					defer r.Close()
-					convert(r, f, *colLong, *colLat, jsonFile, newDelimiter)
+					convert(r, f, *colLong, *colLat, jsonFile, newDelimiter, *suffix)
 					wg.Done()
 				}(f)
 			}
@@ -167,7 +169,7 @@ func main() {
 				go func(f string) {
 					r := readFile(f)
 					defer r.Close()
-					convert(r, f, *colLong, *colLat, jsonFile, newDelimiter)
+					convert(r, f, *colLong, *colLat, jsonFile, newDelimiter, *suffix)
 					wg.Done()
 				}(f)
 			}
@@ -188,7 +190,7 @@ func readFile(file string) *os.File {
 }
 
 // convert converts the data 'r' rom the input CSV file 'inputFile' to an output GeoJSON file 'outputFile'
-func convert(r io.Reader, inputFile, colLongitude, colLatitude, outputFile string, delimiter rune) {
+func convert(r io.Reader, inputFile, colLongitude, colLatitude, outputFile string, delimiter rune, suffix string) {
 	reader := csv.NewReader(r)
 	reader.Comma = delimiter
 
@@ -319,17 +321,24 @@ func convert(r io.Reader, inputFile, colLongitude, colLatitude, outputFile strin
 	rawMessage := json.RawMessage(buffer.String())
 	var output string
 	ext := ".geojson"
+	suffix = strings.Trim(suffix, "'")
 	if outputFile == "" {
 		if isURL {
 			parts := strings.Split(inputFile, "/")
-			output = strings.TrimSuffix(parts[len(parts)-1], filepath.Ext(inputFile)) + ext
+			output = strings.TrimSuffix(parts[len(parts)-1], filepath.Ext(inputFile)) + suffix + ext
 		} else {
-			output = strings.TrimSuffix(inputFile, filepath.Ext(inputFile)) + ext
+			output = strings.TrimSuffix(inputFile, filepath.Ext(inputFile)) + suffix + ext
 		}
 	} else if outputFile == strings.TrimSuffix(outputFile, ext) { // If no extension provided
-		output = outputFile + ext
+		output = outputFile + suffix + ext
 	} else {
-		output = outputFile
+
+		if suffix != "" {
+			name := strings.Split(outputFile, ".")[0]
+			output = name + suffix + ext
+		} else {
+			output = outputFile
+		}
 	}
 	if err := ioutil.WriteFile(output, rawMessage, os.FileMode(0644)); err != nil {
 		fmt.Fprintf(os.Stderr, "Couldn't create the GeoJSON file: %s.\n", output)
