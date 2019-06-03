@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/pvernier/csv2geojson.svg?branch=master)](https://travis-ci.com/pvernier/csv2geojson)
+
 # csv2geojson
 
 A CLI to convert CSV to GeoJSON from a file, folder or URL.
