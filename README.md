@@ -6,7 +6,7 @@ A CLI to convert CSV to GeoJSON from a file, folder or URL.
 
 ## Download
 
-Get the binaries (64 bits) for Windows and Linux [here](https://github.com/pvernier/csv2geojson/releases).
+Get the binaries (64 bits) for Linux, Windows and macOS [here](https://github.com/pvernier/csv2geojson/releases).
 
 ## Usage
 
