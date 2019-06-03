@@ -12,8 +12,7 @@ deploy:
   skip_cleanup: true
   file_glob: true
   file: csv2geojson_*
-  api_key:
-    secure: "TQSahMJ/QByXVmUW1Byrd3lIw6bR11fkMwfwaL0hhs2LCIg4G1Xu2MksRAWmZrEJlDqt3+ECIqObkCidWvCAXTSoP/yie9saPlCh9bnWfpu2iVU/sttisfmq6EATHrkUf4zOyURIJ2YzFU6XkIQXdh3xb29Cl50v3g4meUYfhFgrbxspTQN1fLC2CEfZHkGGlHKYkTBr01oEDhQfxANs5BUZrfdpPeIs0JeVEz7+4KwYx8dHyn02HmdzkBbnTL4OZ1mPU3fBaEHcISMyfm4UDF4iEZVBVnWcfPfHQoFlb9o7jnv6fIekVcHByfo1tzkRTN/XAoymsYp9T0vsR+DmkchcRiYTfryHYY1J66AY1oTwENaH52uw8claHWuUiainQkIU6NC4/3MHGQokdA3gvM1byaFrqCW6wnkOQQ0p8Dx0XOenNXr19IfK7uaj7VWiF4SGCR6QgvK42sq6EZ+/HM9hBH42MB/TY9sGk+RwJb1Bb2imR8HQDrn8huaJGS1RAd6hVkfuyicRrKsW+HmuTN2ezoGudF5U24NR7jufTkrn2X3zNI0AaJAzuIMmKgZRqkpRApgOAYUkwsUiV0ml9xpd4ykQAj4KIK+Uy3Z8m0WRTXAWc5oBuKZ4dwow35g6sSvl/ab4Szbnqi9hjkCiI8VqAj8+K7mih20VvF265DE="
+  api_key: ${GITHUB_TOKEN}
   on:
     repo: pvernier/csv2geojson
     tags: true
