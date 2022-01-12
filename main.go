@@ -314,8 +314,8 @@ func convert(r io.Reader, inputFile, colLongitude, colLatitude, outputFile strin
 			}
 		}
 	}
-	buffer.WriteString(`]
-}`)
+	buffer.WriteString(`]}`)
+
 	rawMessage := json.RawMessage(buffer.String())
 	var output string
 	ext := ".geojson"
