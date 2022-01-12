@@ -293,17 +293,15 @@ func convert(r io.Reader, inputFile, colLongitude, colLatitude, outputFile strin
 				d = append(d[:indexX-1], d[indexX:]...)
 			}
 			for j, y := range d {
-
 				buffer.WriteString(`"` + header[j] + `":`)
 				_, fErr := strconv.ParseFloat(y, 32)
-				_, bErr := strconv.ParseBool(y)
+
 				if fErr == nil {
 					buffer.WriteString(y)
-				} else if bErr == nil {
-					buffer.WriteString(strings.ToLower(y))
 				} else {
-					buffer.WriteString((`"` + y + `"`))
+					buffer.WriteString(`"` + y + `"`)
 				}
+
 				//end of property
 				if j < len(d)-1 {
 					buffer.WriteString(",")
